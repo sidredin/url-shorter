@@ -2,7 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use App\Services\UrlShorterService;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class LinkController extends Controller
 {
@@ -19,18 +22,26 @@ class LinkController extends Controller
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
+     * @param \Illuminate\Http\Request $request
+     * @return JsonResponse
      */
     public function store(Request $request)
     {
-        //
+        try {
+            $urlShorterService = new UrlShorterService($request->json());
+            $result = $urlShorterService->run();
+            return new JsonResponse($result);
+        } catch (HttpException $e) {
+            return new JsonResponse($e->getMessage(), $e->getStatusCode());
+        } catch (\Exception $e) {
+            return new JsonResponse($e->getMessage());
+        }
     }
 
     /**
      * Display the specified resource.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function show($id)
@@ -41,8 +52,8 @@ class LinkController extends Controller
     /**
      * Update the specified resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
+     * @param \Illuminate\Http\Request $request
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function update(Request $request, $id)
@@ -53,7 +64,7 @@ class LinkController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
+     * @param int $id
      * @return \Illuminate\Http\Response
      */
     public function destroy($id)
