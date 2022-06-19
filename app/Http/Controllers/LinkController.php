@@ -32,7 +32,10 @@ class LinkController extends Controller
             $result = $urlShorterService->run();
             return new JsonResponse($result);
         } catch (HttpException $e) {
-            return new JsonResponse($e->getMessage(), $e->getStatusCode());
+            return new JsonResponse([
+                'success' => false,
+                'errors' => $e->getMessage(),
+            ], $e->getStatusCode());
         } catch (\Exception $e) {
             return new JsonResponse($e->getMessage());
         }
