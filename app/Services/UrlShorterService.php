@@ -19,27 +19,25 @@ class UrlShorterService
     }
 
 
-    public function run()
+    public function storeOrUpdate($linkId)
     {
         $jsonDataArray = $this->jsonData->all();
 
-        if (array_key_exists('long_url', $jsonDataArray)) {
-            return $this->processData($jsonDataArray);
+        if ($linkId !== null || array_key_exists('long_url', $jsonDataArray)) {
+            return $this->processData($jsonDataArray, $linkId);
         }
 
         return array_map([$this, 'processData'], $jsonDataArray);
     }
 
-    private function processData(mixed $linkData)
+    private function processData(mixed $linkData, $linkId = null)
     {
-        if (!is_array($linkData)) return [
-            'success' => false,
-            'errors' => 'Неправильный формат данных. Возможно, отсутствует параметр long_url',
-        ];
+        if (!is_array($linkData)) throw new HttpException(400,
+            'Неправильный формат данных. Возможно, отсутствует параметр long_url');
 
         if (array_key_exists('long_url', $linkData) && !$this->isValidUri($linkData['long_url'])) return [
             'success' => false,
-            'errors' => "Ссылка {$linkData['long_url']} нерабочая",
+            'errors' => ["Ссылка {$linkData['long_url']} нерабочая"],
         ];
 
         $linkDataValidated = $this->validateData($linkData);
@@ -50,7 +48,9 @@ class UrlShorterService
 
         $linkDataValidated['id'] = $this->generateUrlId();
 
-        return $this->createResponse($this->addDataToDB($linkDataValidated));
+        if ($linkId === null) $linkDataValidated['id'] = $this->generateUrlId();
+
+        return $this->createResponse($this->addDataToDbOrUpdate($linkDataValidated, $linkId));
 
 
     }
@@ -88,9 +88,15 @@ class UrlShorterService
         return uniqid();
     }
 
-    private function addDataToDB($linkData)
+    private function addDataToDbOrUpdate($linkData, $linkId)
     {
-        $link = Link::create($linkData);
+        if ($linkId !== null) {
+            $link = Link::find($linkId);
+            if ($link === null) throw new HttpException(404, 'Ссылка не найдена');
+            $link->update($linkData);
+        } else {
+            $link = Link::create($linkData);
+        }
 
         if (!empty($linkData['tags'])) {
             $tags = [];

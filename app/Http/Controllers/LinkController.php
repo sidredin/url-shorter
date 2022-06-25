@@ -27,18 +27,7 @@ class LinkController extends Controller
      */
     public function store(Request $request)
     {
-        try {
-            $urlShorterService = new UrlShorterService($request->json());
-            $result = $urlShorterService->run();
-            return new JsonResponse($result);
-        } catch (HttpException $e) {
-            return new JsonResponse([
-                'success' => false,
-                'errors' => $e->getMessage(),
-            ], $e->getStatusCode());
-        } catch (\Exception $e) {
-            return new JsonResponse($e->getMessage());
-        }
+        return $this->storeOrUpdate($request);
     }
 
     /**
@@ -57,11 +46,11 @@ class LinkController extends Controller
      *
      * @param \Illuminate\Http\Request $request
      * @param int $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
     public function update(Request $request, $id)
     {
-        //
+        return $this->storeOrUpdate($request, $id);
     }
 
     /**
@@ -73,5 +62,21 @@ class LinkController extends Controller
     public function destroy($id)
     {
         //
+    }
+
+    private function storeOrUpdate(Request $request, $linkId = null)
+    {
+        try {
+            $urlShorterService = new UrlShorterService($request->json());
+            $result = $urlShorterService->storeOrUpdate($linkId);
+            return new JsonResponse($result);
+        } catch (HttpException $e) {
+            return new JsonResponse([
+                'success' => false,
+                'errors' => [$e->getMessage()],
+            ], $e->getStatusCode());
+        } catch (\Exception $e) {
+            return new JsonResponse($e->getMessage());
+        }
     }
 }
