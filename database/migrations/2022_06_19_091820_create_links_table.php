@@ -17,6 +17,7 @@ return new class extends Migration {
             $table->string('long_url');
             $table->string('title')->nullable();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

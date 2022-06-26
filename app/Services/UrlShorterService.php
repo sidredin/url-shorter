@@ -116,4 +116,22 @@ class UrlShorterService
         $linkData['short_link'] = $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . '/' . $linkData['id'];
         return $linkData;
     }
+
+    public static function deleteLink($id)
+    {
+        $link = Link::find($id);
+        if ($link === null) return [
+            'success' => false,
+            'errors' => ['Ссылка не найдена'],
+        ];
+
+        $link->tags()->detach();
+
+        $link->delete();
+
+        return [
+            'success' => true,
+            'message' => ['Ссылка удалена'],
+        ];
+    }
 }

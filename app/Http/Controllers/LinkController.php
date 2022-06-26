@@ -57,11 +57,23 @@ class LinkController extends Controller
      * Remove the specified resource from storage.
      *
      * @param int $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
     public function destroy($id)
     {
-        //
+        try {
+            return new JsonResponse(UrlShorterService::deleteLink($id));
+        } catch (HttpException $e) {
+            return new JsonResponse([
+                'success' => false,
+                'errors' => [$e->getMessage()],
+            ], $e->getStatusCode());
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'errors' => [$e->getMessage()],
+            ], $e->getStatusCode());
+        }
     }
 
     private function storeOrUpdate(Request $request, $linkId = null)
