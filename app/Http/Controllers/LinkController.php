@@ -1,7 +1,9 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Http\Controllers;
 
+use App\Models\Link;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Services\UrlShorterService;
@@ -12,9 +14,9 @@ class LinkController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function index()
+    public function index(): JsonResponse
     {
         //
     }
@@ -25,7 +27,7 @@ class LinkController extends Controller
      * @param \Illuminate\Http\Request $request
      * @return JsonResponse
      */
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
         return $this->storeOrUpdate($request);
     }
@@ -34,11 +36,26 @@ class LinkController extends Controller
      * Display the specified resource.
      *
      * @param int $id
-     * @return \Illuminate\Http\Response
+     * @return JsonResponse
      */
-    public function show($id)
+    public function show($id): JsonResponse
     {
-        //
+        try {
+            $link = Link::find($id);
+            if ($link === null) throw new HttpException(404, 'Ссылка не найдена');
+            $link['success'] = true;
+            return new JsonResponse($link);
+        } catch (HttpException $e) {
+            return new JsonResponse([
+                'success' => false,
+                'errors' => [$e->getMessage()],
+            ], $e->getStatusCode());
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'errors' => [$e->getMessage()],
+            ], 500);
+        }
     }
 
     /**
@@ -48,7 +65,7 @@ class LinkController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): JsonResponse
     {
         return $this->storeOrUpdate($request, $id);
     }
@@ -59,7 +76,7 @@ class LinkController extends Controller
      * @param int $id
      * @return JsonResponse
      */
-    public function destroy($id)
+    public function destroy($id): JsonResponse
     {
         try {
             return new JsonResponse(UrlShorterService::deleteLink($id));
@@ -76,7 +93,7 @@ class LinkController extends Controller
         }
     }
 
-    private function storeOrUpdate(Request $request, $linkId = null)
+    private function storeOrUpdate(Request $request, $linkId = null): JsonResponse
     {
         try {
             $urlShorterService = new UrlShorterService($request->json());
