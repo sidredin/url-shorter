@@ -18,7 +18,19 @@ class LinkController extends Controller
      */
     public function index(): JsonResponse
     {
-        //
+        try {
+            return new JsonResponse(Link::all());
+        } catch (HttpException $e) {
+            return new JsonResponse([
+                'success' => false,
+                'errors' => [$e->getMessage()],
+            ], $e->getStatusCode());
+        } catch (\Exception $e) {
+            return new JsonResponse([
+                'success' => false,
+                'errors' => [$e->getMessage()],
+            ], 500);
+        }
     }
 
     /**
@@ -43,7 +55,6 @@ class LinkController extends Controller
         try {
             $link = Link::find($id);
             if ($link === null) throw new HttpException(404, 'Ссылка не найдена');
-            $link['success'] = true;
             return new JsonResponse($link);
         } catch (HttpException $e) {
             return new JsonResponse([
