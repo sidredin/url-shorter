@@ -1,6 +1,14 @@
 ## Запуск проекта
 
-Клонируем проект и в консоли переходим в папку проекта. Далее выполняем следующие команды:
+Клонируем проект и в консоли переходим в папку проекта. Далее выполняем команду:
+
+```bash
+cp .env.example .env
+```
+
+В файле .env пишем пароль БД (`DB_PASSWORD`)
+
+Далее выполняем команды:
 
 ```bash
 docker run --rm \
@@ -9,8 +17,6 @@ docker run --rm \
 -w /var/www/html \
 laravelsail/php81-composer:latest \
 composer install --ignore-platform-reqs
-
-cp .env.example .env
 
 ./vendor/bin/sail up -d
 
