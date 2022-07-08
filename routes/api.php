@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\LinkController;
+use App\Http\Controllers\API\StatController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -16,3 +17,4 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::apiResource('links', LinkController::class);
+Route::get('/stats/{link}', [StatController ::class, 'show']);
