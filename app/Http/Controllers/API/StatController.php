@@ -23,19 +23,34 @@ class StatController extends Controller
         $link = Link::find($id);
         if ($link === null) throw new HttpException(404, 'Ссылка не найдена');
 
+        $whereClause = [['link_id', '=', $id]];
 
-        $result =
-            Stat::select(
-                [
-                    DB::raw('COUNT(*) as total_views'),
-                    DB::raw('COUNT(DISTINCT ip, user_agent) as unique_views'),
-                    DB::raw('date(created_at) as date'),
-                ],
-            )
-                ->where('link_id', '=', $id)
-                ->groupByRaw('date(created_at)')
-                ->orderBy(DB::raw('date(created_at)'), 'desc')
-                ->get();
+        if (!empty($request->from)) $whereClause[] = ['created_at', '>=', $request->from];
+        if (!empty($request->to)) $whereClause[] = ['created_at', '<=', $request->to];
+
+        $selectClause = [
+            DB::raw('COUNT(*) as total_views'),
+            DB::raw('COUNT(DISTINCT ip, user_agent) as unique_views')
+        ];
+        $dateInQuery = 'date(created_at)';
+        if (empty($request->from) && empty($request->from)) $selectClause[] = DB::raw($dateInQuery . ' as date');
+
+        $query =
+            Stat::select($selectClause)
+                ->where($whereClause);
+
+        if (empty($request->from) && empty($request->from))
+            $query = $query
+                ->groupByRaw($dateInQuery)
+                ->orderBy(DB::raw($dateInQuery), 'desc');
+
+
+        $result = $query
+            ->get();
+
+        if (!empty($request->from) || !empty($request->to))
+            $result = $result
+                ->first();
 
         return new JsonResponse($result);
     }
