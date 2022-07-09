@@ -19,4 +19,8 @@ class Stat extends Model
         'user_agent',
         'link_id',
     ];
+
+    protected $casts = [
+        'date' => 'date:Y-d-m',
+    ];
 }
